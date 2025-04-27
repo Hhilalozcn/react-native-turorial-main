@@ -1,41 +1,66 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native'
-import React from 'react'
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
 
-const trips = [
-  {
-    id: 1,
-    title: 'Paris Macerası',
-    location: 'Paris, Fransa',
-    date: '15 Nisan 2024',
-    tag: 'Şehir Turu',
-    image: require('../../assets/images/imagePlaceholder.jpg'),
-    comments: 5
-  },
-  {
-    id: 2,
-    title: "New York'ta Hafta Sonu",
-    location: 'New York City, ABD',
-    date: '2023-09-22',
-    comments: 1,
-    tag: 'City',
-    image: require('../../assets/images/newyork.jpeg') // Added missing image
-  },
-  {
-    id: 3,
-    title: "İsviçre Alpleri'nde Yürüyüş",
-    location: 'Interlaken, İsviçre',
-    date: '2023-06-10',
-    comments: 0,
-    tag: 'Mountain',
-    image: require('../../assets/images/isvicre.jpeg') // Added missing image
-  }
-]
+interface Trip {
+  id: string; // Firestore'dan gelen id string olur
+  title: string;
+  location: string;
+  date: string;
+  tag: string;
+  imageUrl: string; // Firestore'da image'ı URL olarak tutuyoruz
+  comments: number;
+}
 
 const Home = () => {
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchTrips = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "trips"));
+        console.log("querySnapshot:", querySnapshot);
+        const tripsData: Trip[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Trip[];
+        setTrips(tripsData);
+      } catch (error) {
+        console.error("Veriler çekilirken hata oluştu:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrips();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#7B2CBF" />
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Seyahat <Text style={styles.titleHighlight}>Günlüğüm</Text></Text>
-      <Text style={styles.subtitle}>Dünya çapındaki maceralarınızı takip edin ve paylaşın</Text>
+      <Text style={styles.title}>
+        Seyahat <Text style={styles.titleHighlight}>Günlüğüm</Text>
+      </Text>
+      <Text style={styles.subtitle}>
+        Dünya çapındaki maceralarınızı takip edin ve paylaşın
+      </Text>
 
       <TouchableOpacity style={styles.addButton}>
         <Text style={styles.addButtonText}>+ Yeni Seyahat Ekle</Text>
@@ -44,9 +69,10 @@ const Home = () => {
       <View style={styles.cardContainer}>
         {trips.map((trip) => (
           <View key={trip.id} style={styles.card}>
-            <Image 
-              source={trip.image}
+            <Image
+              source={{ uri: trip.imageUrl }}
               style={styles.imagePlaceholder}
+              resizeMode="cover"
             />
             <Text style={[styles.tag, styles.tagPosition]}>{trip.tag}</Text>
             <View style={styles.cardContent}>
@@ -58,97 +84,94 @@ const Home = () => {
           </View>
         ))}
       </View>
-
     </ScrollView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#fff'
+    backgroundColor: "#fff",
   },
-  image: {
-    width: 300, // Görselin genişliği
-    height: 200, // Görselin yüksekliği
-    borderRadius: 10, // Köşeleri yuvarlatma
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 26,
-    fontWeight: 'bold',
-    color: '#7B2CBF',
+    fontWeight: "bold",
+    color: "#7B2CBF",
   },
   titleHighlight: {
-    color: '#D6336C'
+    color: "#D6336C",
   },
   subtitle: {
     fontSize: 14,
-    color: '#555',
-    marginBottom: 16
+    color: "#555",
+    marginBottom: 16,
   },
   addButton: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#0FD4C3',
+    alignSelf: "flex-end",
+    backgroundColor: "#0FD4C3",
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 10,
-    marginBottom: 20
+    marginBottom: 20,
   },
   addButtonText: {
-    color: '#fff',
-    fontWeight: 'bold'
+    color: "#fff",
+    fontWeight: "bold",
   },
   cardContainer: {
-    flexDirection: 'column',
-    gap: 20
+    flexDirection: "column",
+    gap: 20,
   },
   card: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 3
+    overflow: "hidden",
+    elevation: 3,
   },
   imagePlaceholder: {
+    width: "100%",
     height: 160,
-    backgroundColor: '#ccc',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
-    padding: 10
+    backgroundColor: "#ccc",
   },
   tag: {
-    backgroundColor: '#FF6B6B',
-    color: '#fff',
+    backgroundColor: "#FF6B6B",
+    color: "#fff",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
-    fontSize: 12
+    fontSize: 12,
   },
   tagPosition: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 10,
-    right: 10
+    right: 10,
   },
   cardContent: {
-    padding: 12
+    padding: 12,
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#38B2AC'
+    fontWeight: "bold",
+    color: "#38B2AC",
   },
   cardLocation: {
-    color: '#555',
-    marginVertical: 4
+    color: "#555",
+    marginVertical: 4,
   },
   cardDate: {
-    color: '#666',
-    fontSize: 12
+    color: "#666",
+    fontSize: 12,
   },
   cardComment: {
-    color: '#666',
+    color: "#666",
     fontSize: 12,
-    marginTop: 4
-  }
-})
+    marginTop: 4,
+  },
+});
 
-export default Home
+export default Home;
