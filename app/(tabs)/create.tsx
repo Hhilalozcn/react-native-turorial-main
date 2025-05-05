@@ -8,45 +8,42 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from "../../firebaseConfig"; // Firebase yapılandırmanızı içe aktarın
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
 
 const Create = () => {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
-  const [type, setType] = useState("");
+  const [tag, setTag] = useState("");
   const [description, setDescription] = useState("");
 
   const handleSave = async () => {
-    if (!title || !location || !date || !type || !description) {
+    if (!title || !location || !date || !tag || !description) {
       Alert.alert("Hata", "Lütfen tüm alanları doldurun.");
       return;
     }
 
     try {
-      
       const travelData = {
         title,
         location,
         date,
-        type,
+        tag,
         description,
+        imageUrl: "", // placeholder image
+        comments: 0,
       };
 
-      console.log("travelData:", travelData);
-      // Seyahat verisini Firestore'a ekleyin
-      const docRef = await addDoc(collection(db, "travels"), travelData);
+      const docRef = await addDoc(collection(db, "trips"), travelData);
       console.log("Seyahat eklendi:", docRef.id);
 
       Alert.alert("Başarılı", "Seyahat başarıyla eklendi.");
-      // Formu sıfırlayın
       setTitle("");
       setLocation("");
       setDate("");
-      setType("");
+      setTag("");
       setDescription("");
-    
     } catch (error) {
       console.error("Seyahat eklenirken hata oluştu:", error);
       Alert.alert("Hata", "Seyahat eklenemedi.");
@@ -90,12 +87,12 @@ const Create = () => {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Seyahat Türü</Text>
+        <Text style={styles.label}>Seyahat Türü (Etiket)</Text>
         <TextInput
           style={styles.input}
-          placeholder="Plaj, Dağ, Şehir, Yol Gezisi,Sırt Çantalı"
-          value={type}
-          onChangeText={setType}
+          placeholder="Plaj, Dağ, Şehir vb."
+          value={tag}
+          onChangeText={setTag}
         />
       </View>
 
@@ -108,13 +105,6 @@ const Create = () => {
           onChangeText={setDescription}
           multiline
         />
-      </View>
-
-      <View style={styles.uploadBox}>
-        <Text style={styles.uploadText}>Buradan görsel ekleyebilirsiniz</Text>
-        <TouchableOpacity style={styles.uploadButton}>
-          <Text style={styles.buttonText}>Görsel Yükle</Text>
-        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.submitButton} onPress={handleSave}>
@@ -156,31 +146,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     marginBottom: 15,
-  },
-  uploadBox: {
-    borderWidth: 2,
-    borderStyle: "dashed",
-    borderColor: "#80cbc4",
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
-    backgroundColor: "#e0f2f1",
-    marginBottom: 20,
-  },
-  uploadText: {
-    fontSize: 16,
-    color: "#555",
-    marginBottom: 10,
-  },
-  uploadButton: {
-    backgroundColor: "#26a69a",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
   },
   submitButton: {
     backgroundColor: "#00796b",
