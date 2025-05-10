@@ -1,13 +1,22 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const handleLogin = () => {
-    // Burada login işlemi yapılacak
-    console.log("Login clicked with", email, password)
+    // Örnek email ve şifre
+    const correctEmail = 'test@example.com'
+    const correctPassword = '123456'
+
+    // Kullanıcının girdiği bilgilerle doğrulama yapalım
+    if (email === correctEmail && password === correctPassword) {
+      Alert.alert("Başarıyla Giriş Yaptınız!", "Hoş geldiniz!")
+      // Burada asıl giriş işlemi yapılır, örneğin ana sayfaya yönlendirilir
+    } else {
+      Alert.alert("Hata", "Geçersiz email veya şifre. Lütfen tekrar deneyin.")
+    }
   }
 
   return (
